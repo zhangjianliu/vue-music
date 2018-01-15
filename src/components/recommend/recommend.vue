@@ -1,12 +1,55 @@
 <template>
   <div class="recommend" ref="recommend">
-    hello,我是recommend页面
+    <!--二级路由显示区域-->
+    <span>hello,我是recommend页面</span>
     <router-view></router-view>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
+  import { getRecommend } from 'api/tuijian'
 
+  import { ERR_OK } from 'api/config'
+
+  export default {
+    data () {
+      return {
+        recommends: []
+      }
+    },
+    created () {
+      this._getRecommend()
+    },
+    methods: {
+      handlePlaylist (playlist) {
+        const bottom = playlist.length > 0 ? '60px' : ''
+
+        this.$refs.recommend.style.bottom = bottom
+        this.$refs.scroll.refresh()
+      },
+      loadImage () {
+        if (!this.checkloaded) {
+          this.checkloaded = true
+          this.$refs.scroll.refresh()
+        }
+      },
+      selectItem (item) {
+        this.$router.push({
+          path: `/recommend/${item.dissid}`
+        })
+        this.setDisc(item)
+      },
+      _getRecommend () {
+        getRecommend().then((res) => {
+          if (res.code === ERR_OK) {
+            this.recommends = res.data.slider
+            //console.log(this.recommends)
+          }
+        })
+      }
+    },
+    components: {}
+  }
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
