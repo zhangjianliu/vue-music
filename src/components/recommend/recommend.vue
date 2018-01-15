@@ -1,16 +1,16 @@
 <template>
   <div class="recommend" ref="recommend">
     <!--二级路由显示区域-->
-    <span>hello,我是recommend页面</span>
+    <banner v-if="recommends.length"   :banner-list="recommends"></banner>
     <router-view></router-view>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
+
   import { getRecommend } from 'api/tuijian'
-
   import { ERR_OK } from 'api/config'
-
+  import Banner from 'components/banner/banner'
   export default {
     data () {
       return {
@@ -43,12 +43,13 @@
         getRecommend().then((res) => {
           if (res.code === ERR_OK) {
             this.recommends = res.data.slider
-            //console.log(this.recommends)
           }
         })
       }
     },
-    components: {}
+    components: {
+      Banner
+    }
   }
 </script>
 
