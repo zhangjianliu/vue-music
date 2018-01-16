@@ -1,32 +1,33 @@
 <template>
   <div class="recommend" ref="recommend">
     <!--二级路由显示区域-->
+    <!--轮播图组件-->
     <banner v-if="recommends.length"   :banner-list="recommends"></banner>
+    <song-list  :disc-list="discList"></song-list>
+    <!--歌单推荐组件-->
     <router-view></router-view>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
 
-  import { getRecommend } from 'api/tuijian'
+  import { getRecommend, getDiscList } from 'api/tuijian'
   import { ERR_OK } from 'api/config'
   import Banner from 'components/banner/banner'
+  import songList from 'base/reco-song-list/song-list'
   export default {
     data () {
       return {
-        recommends: []
+        recommends: [],
+        discList:[]
+
       }
     },
     created () {
       this._getRecommend()
+      this._getDiscList()
     },
     methods: {
-      handlePlaylist (playlist) {
-        const bottom = playlist.length > 0 ? '60px' : ''
-
-        this.$refs.recommend.style.bottom = bottom
-        this.$refs.scroll.refresh()
-      },
       loadImage () {
         if (!this.checkloaded) {
           this.checkloaded = true
@@ -45,10 +46,19 @@
             this.recommends = res.data.slider
           }
         })
+      },
+      _getDiscList() {
+        getDiscList().then((res) => {
+          if (res.code === ERR_OK) {
+            this.discList = res.data.list
+            console.log(this.discList)
+          }
+        })
       }
     },
     components: {
-      Banner
+      Banner,
+      songList
     }
   }
 </script>
