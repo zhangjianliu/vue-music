@@ -1,13 +1,18 @@
 <template>
   <div class="recommend" ref="recommend">
     <!--二级路由显示区域-->
-    <!--轮播图组件-->
+
     <scroll ref="scroll" class="recommend-content" :discListData="discList">
       <div>
-        <banner v-if="recommends.length" :banner-list="recommends"></banner>
+        <!--轮播图组件-->
+        <banner v-if="recommends.length"  @load="loadImage" :banner-list="recommends"></banner>
+        <!--歌单推荐组件-->
         <song-list :disc-list="discList"></song-list>
       </div>
-      <!--歌单推荐组件-->
+      <!--loading组件-->
+      <div class="loading-container" v-show="!discList.length">
+        <loading></loading>
+      </div>
     </scroll>
     <router-view></router-view>
   </div>
@@ -18,6 +23,7 @@
 
   import { getRecommend, getDiscList } from 'api/tuijian'
   import { ERR_OK } from 'api/config'
+  import Loading from 'base/loading/loading'
   import Banner from 'components/banner/banner'
   import songList from 'base/reco-song-list/song-list'
   import Scroll from 'base/scroll/scroll'
@@ -57,16 +63,24 @@
       _getDiscList () {
         getDiscList().then((res) => {
           if (res.code === ERR_OK) {
-            this.discList = res.data.list
-            console.log(this.discList)
+            setTimeout(()=>{
+              this.discList = res.data.list
+            },1000)
           }
         })
-      }
+      },
+      loadImage() {
+        if (!this.checkloaded) {
+          this.checkloaded = true
+          this.$refs.scroll.refresh()
+        }
+      },
     },
     components: {
       Banner,
       songList,
-      Scroll
+      Scroll,
+      Loading
     }
   }
 </script>

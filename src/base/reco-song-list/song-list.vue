@@ -4,7 +4,7 @@
     <ul>
       <li @click="selectItem(item)" v-for="item in discList" class="item">
         <div class="icon">
-          <img width="60" height="60"  :src="item.imgurl">
+          <img width="60" height="60"  v-lazy="item.imgurl" src="">
         </div>
         <div class="text">
           <h2 class="name" v-html="item.creator.name"></h2>
@@ -64,9 +64,9 @@
         .name
           margin-bottom: 10px
           color: $color-text
-          font-size: 15px
+          font-size: 14px
         .desc
           color: $color-text
-          font-size: 13px
+          font-size: 12px
 
 </style>
