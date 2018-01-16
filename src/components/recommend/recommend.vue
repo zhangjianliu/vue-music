@@ -2,11 +2,16 @@
   <div class="recommend" ref="recommend">
     <!--二级路由显示区域-->
     <!--轮播图组件-->
-    <banner v-if="recommends.length"   :banner-list="recommends"></banner>
-    <song-list  :disc-list="discList"></song-list>
-    <!--歌单推荐组件-->
+    <scroll ref="scroll" class="recommend-content" :discListData="discList">
+      <div>
+        <banner v-if="recommends.length" :banner-list="recommends"></banner>
+        <song-list :disc-list="discList"></song-list>
+      </div>
+      <!--歌单推荐组件-->
+    </scroll>
     <router-view></router-view>
   </div>
+
 </template>
 
 <script type="text/ecmascript-6">
@@ -15,11 +20,13 @@
   import { ERR_OK } from 'api/config'
   import Banner from 'components/banner/banner'
   import songList from 'base/reco-song-list/song-list'
+  import Scroll from 'base/scroll/scroll'
+
   export default {
     data () {
       return {
         recommends: [],
-        discList:[]
+        discList: []
 
       }
     },
@@ -47,7 +54,7 @@
           }
         })
       },
-      _getDiscList() {
+      _getDiscList () {
         getDiscList().then((res) => {
           if (res.code === ERR_OK) {
             this.discList = res.data.list
@@ -58,7 +65,8 @@
     },
     components: {
       Banner,
-      songList
+      songList,
+      Scroll
     }
   }
 </script>

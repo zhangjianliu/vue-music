@@ -64,6 +64,9 @@
         .name
           margin-bottom: 10px
           color: $color-text
+          font-size: 15px
         .desc
-          color: $color-text-
+          color: $color-text
+          font-size: 13px
+
 </style>
