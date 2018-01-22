@@ -46,6 +46,7 @@
           <div class="progress-wrapper">
             <span class="time time-l">{{format(currentTime)}}</span>
             <div class="progress-bar-wrapper">
+              <progress-bar :percent="percent" ></progress-bar>
             </div>
             <span class="time time-r">{{format(currentSong.duration)}}</span>
           </div>
@@ -96,6 +97,7 @@
   import { prefixStyle } from 'common/js/dom' // 给transform 加webkit前缀
   import { playMode } from 'common/js/config'
   import Scroll from 'base/scroll/scroll'
+  import ProgressBar from 'base/progress-bar/progress-bar'
   const transform = prefixStyle('transform')
   const transitionDuration = prefixStyle('transitionDuration')
   export default {
@@ -122,6 +124,9 @@
       },
       disableCls() {
         return this.songReady ? '' : 'disable'
+      },
+      percent(){
+        return this.currentTime/this.currentSong.duration
       },
       ...mapGetters([
         'currentIndex',
@@ -294,7 +299,8 @@
       },
     },
     components: {
-      Scroll
+      Scroll,
+      ProgressBar
     }
   }
 </script>
