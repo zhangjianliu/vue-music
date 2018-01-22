@@ -44,24 +44,23 @@
 
           </div>
           <div class="progress-wrapper">
-            <span class="time time-l"></span>
+            <span class="time time-l">{{format(currentTime)}}</span>
             <div class="progress-bar-wrapper">
-
             </div>
-            <span class="time time-r"></span>
+            <span class="time time-r">{{format(currentSong.duration)}}</span>
           </div>
           <div class="operators">
-            <div class="icon i-left">
-              <i class="icon-sequence"></i>
+            <div class="icon i-left" :class="disableCls">
+              <i class="icon-sequence" ></i>
             </div>
             <div class="icon i-left">
               <i class="icon-prev" @click="pre"></i>
             </div>
-            <div class="icon i-center">
-              <i @click="togglePlaying" :class="playIcon"></i>
+            <div class="icon i-center" :class="disableCls">
+              <i @click="togglePlaying" :class="playIcon" ></i>
             </div>
-            <div class="icon i-right">
-              <i class="icon-next" @click="next"></i>
+            <div class="icon i-right" :class="disableCls">
+              <i class="icon-next" @click="next" ></i>
             </div>
             <div class="icon i-right">
               <i class="icon icon-not-favorite"></i>
@@ -87,7 +86,7 @@
         </div>
       </div>
     </transition>
-    <audio ref="audio"  @error="error" @canplay="ready" src="http://sc1.111ttt.cn/2017/1/11/11/304112002347.mp3"></audio>
+    <audio ref="audio"  @error="error" @canplay="ready"  @timeupdate="updateTime" src="http://sc1.111ttt.cn/2017/1/11/11/304112002347.mp3"></audio>
   </div>
 </template>
 
@@ -120,6 +119,9 @@
       },
       miniIcon() {
         return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
+      },
+      disableCls() {
+        return this.songReady ? '' : 'disable'
       },
       ...mapGetters([
         'currentIndex',
@@ -244,10 +246,28 @@
       },
       ready(){
         this.songReady=true // 解决快速点击
-
       },
       error(){
         this.songReady=true // 歌曲加载失败
+      },
+      updateTime(e){
+        this.currentTime = e.target.currentTime
+      },
+      //得到分和秒
+      format(interval) {
+        interval = interval | 0  // 向下取整
+        const minute = interval / 60 | 0
+        const second = this._pad(interval % 60)
+        return `${minute}:${second}`
+      },
+      // 补0函数
+      _pad(num, n = 2) {
+        let len = num.toString().length
+        while (len < n) {
+          num = '0' + num
+          len++
+        }
+        return num
       },
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',  // back 设置 FullScreen
