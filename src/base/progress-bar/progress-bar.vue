@@ -51,7 +51,7 @@
       },
       // 点击进度条的时候
       progressClick(e) {
-        const rect = this.$refs.progressBar.getBoundingClientRect()
+        const rect = this.$refs.progressBar.getBoundingClientRect() //获取当前元素的rect
         const offsetWidth = e.pageX - rect.left
         this._offset(offsetWidth)
         // 这里当我们点击 progressBtn 的时候，e.offsetX 获取不对
