@@ -27,10 +27,11 @@
       }
     },
     created() {
-      // 用于在不同touch 事件间共享数据中间桥梁的作用
+      // 用于在不同touch事件间共享数据通讯的作用
       this.touch = {}
     },
     methods: {
+      // better-scroll封装的touch事件
       progressTouchStart(e) {
         this.touch.initiated = true // 是否拖动中标志变量
         this.touch.startX = e.touches[0].pageX // 开始位置
@@ -63,7 +64,7 @@
         const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth
 
         const percent = this.$refs.progress.clientWidth / barWidth
-
+        // 告诉外界播放器我改变后的当前进度
         this.$emit('percentChange', percent)
       },
       _offset(offsetWidth) {
