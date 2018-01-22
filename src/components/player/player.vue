@@ -80,7 +80,9 @@
           <p class="desc" v-html="currentSong.singer"></p>
         </div>
         <div class="control">
-          <i @click.stop="togglePlaying"  :class="miniIcon"></i>
+          <progress-circle :radius="radius" :percent="percent">
+            <i @click.stop="togglePlaying" class="icon-mini" :class="miniIcon"></i>
+          </progress-circle>
         </div>
         <div class="control" @click.stop="">
           <i class="icon-playlist"></i>
@@ -98,6 +100,7 @@
   import { playMode } from 'common/js/config'
   import Scroll from 'base/scroll/scroll'
   import ProgressBar from 'base/progress-bar/progress-bar'
+  import ProgressCircle from 'base/progress-circle/progress-circle'
   const transform = prefixStyle('transform')
   const transitionDuration = prefixStyle('transitionDuration')
   export default {
@@ -306,7 +309,8 @@
     },
     components: {
       Scroll,
-      ProgressBar
+      ProgressBar,
+      ProgressCircle
     }
   }
 </script>
