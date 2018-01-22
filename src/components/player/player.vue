@@ -55,13 +55,13 @@
               <i class="icon-sequence"></i>
             </div>
             <div class="icon i-left">
-              <i class="icon-prev"></i>
+              <i class="icon-prev" @click="pre"></i>
             </div>
             <div class="icon i-center">
               <i @click="togglePlaying" :class="playIcon"></i>
             </div>
             <div class="icon i-right">
-              <i class="icon-next"></i>
+              <i class="icon-next" @click="next"></i>
             </div>
             <div class="icon i-right">
               <i class="icon icon-not-favorite"></i>
@@ -87,7 +87,7 @@
         </div>
       </div>
     </transition>
-    <audio ref="audio" src="http://sc1.111ttt.cn/2017/1/11/11/304112002347.mp3"></audio>
+    <audio ref="audio"  @error="error" @canplay="ready" src="http://sc1.111ttt.cn/2017/1/11/11/304112002347.mp3"></audio>
   </div>
 </template>
 
@@ -102,7 +102,7 @@
   export default {
     data () {
       return {
-        songReady: false,
+        songReady: false, //
         currentTime: 0,
         radius: 32,
         currentLyric: null,
@@ -203,9 +203,56 @@
           scale
         }
       },
+      pre(){
+        // 解决快速切换
+        if (!this.songReady) {
+          return
+        }
+        if (this.playlist.length === 1) {
+          return
+        } else {
+          let index = this.currentIndex - 1
+          if (index === -1) {
+            index = this.playlist.length - 1
+          }
+          this.setCurrentIndex(index)
+          if (!this.playing) {
+            this.togglePlaying()
+          }
+        }
+        this.songReady = false
+      },
+      next(){
+        console.log(this.songReady)
+        if (!this.songReady) {
+          return
+        }
+        if (this.playlist.length === 1) {
+         //this.loop()
+          return
+        } else {
+          let index = this.currentIndex + 1
+          if (index === this.playlist.length) {
+            index = 0
+          }
+          this.setCurrentIndex(index)
+          if (!this.playing) {
+            this.togglePlaying()
+          }
+        }
+        this.songReady = false
+      },
+      ready(){
+        this.songReady=true // 解决快速点击
+
+      },
+      error(){
+        this.songReady=true // 歌曲加载失败
+      },
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',  // back 设置 FullScreen
-        setPlayingState: 'SET_PLAYING_STATE'
+        setPlayingState: 'SET_PLAYING_STATE',
+        setCurrentIndex:'SET_CURRENT_INDEX'
       }),
       ...mapActions([
         'savePlayHistory'
@@ -220,8 +267,9 @@
       },
       playing (newPlaying) {
         const audio = this.$refs.audio
+        let _this=this
         this.$nextTick(() => {
-          newPlaying ? audio.play() : audio.pause()
+          newPlaying ? _this.$refs.audio.play() : _this.$refs.audio.pause()
         })
       },
     },
