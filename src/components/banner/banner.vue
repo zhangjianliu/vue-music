@@ -4,7 +4,7 @@
       <swiper :options="swiperOption" ref="mySwiper">
         <!-- 幻灯内容 -->
         <swiper-slide :key="i" v-for="(str, i) in bannerList">
-          <img :src="str.picUrl" style="height:100%"/>
+          <img :src="str.picUrl" @load="loadImage" style="height:100%"/>
         </swiper-slide>
         <!-- 以下控件元素均为可选 -->
         <div class="swiper-pagination" slot="pagination"></div>
@@ -42,6 +42,11 @@
             console.log(swiper)
           }
         }
+      }
+    },
+    methods:{
+      loadImage(){
+        this.$emit('loadImage')
       }
     },
     mounted () {

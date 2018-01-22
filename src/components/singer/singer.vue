@@ -1,6 +1,8 @@
 <template>
+  <!--歌手页面的开发-->
   <div class="singer" ref="singer">
     <list-view @select="selectSinger" :data="singers" ref="list"></list-view>
+    <!--二级路由-->
     <router-view></router-view>
   </div>
 </template>
@@ -10,14 +12,13 @@
   import {getSingerList} from 'api/singer'
   import {ERR_OK} from 'api/config'
   import Singer from 'common/js/singer'
-//  import {mapMutations} from 'vuex'
- // import {playlistMixin} from 'common/js/mixin'
+
+  import {mapMutations} from 'vuex'  //vuex 提供的语法糖  提供mutation方法的映射
 
   const HOT_SINGER_LEN = 10
   const HOT_NAME = '热门'
 
   export default {
-    //mixins: [playlistMixin],
     data() {
       return {
         singers: []
@@ -36,6 +37,7 @@
         this.$router.push({
           path: `/singer/${singer.id}`
         })
+        // 使用vuex来保存歌手数据
         this.setSinger(singer)
       },
       _getSingerList() {
@@ -88,6 +90,9 @@
         })
         return hot.concat(ret)
       },
+      ...mapMutations({
+        setSinger: 'SET_SINGER'
+      })
     },
     components: {
       ListView

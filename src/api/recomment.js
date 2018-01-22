@@ -1,20 +1,19 @@
 import jsonp from 'common/js/jsonp'
-import {commonParams, options} from './config'
+import { commonParams, options } from './config'
 import axios from 'axios'
-
-export function getRecommend() {
+export function getRecommend () {
   const url = 'https://c.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg'
-
+  /*  浅拷贝 */
   const data = Object.assign({}, commonParams, {
     platform: 'h5',
     uin: 0,
     needNewCode: 1
   })
+
   return jsonp(url, data, options)
 }
 export function getDiscList() {
-  console.log('222222222222')
-  const url = '../../static/gedan.json'
+  const url = './static/gedan.json'
   //  const url = '/api/getDiscList'
   //  const data = Object.assign({}, commonParams, {
   //   platform: 'yqq',
@@ -34,7 +33,6 @@ export function getDiscList() {
   // })
   return axios.get(url, {
   }).then((res) => {
-
     console.log(res)
     return Promise.resolve(res.data)
   })

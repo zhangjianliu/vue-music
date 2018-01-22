@@ -1,11 +1,9 @@
 <template>
   <div class="recommend" ref="recommend">
-    <!--二级路由显示区域-->
-
-    <scroll ref="scroll" class="recommend-content" :discListData="discList">
+    <scroll ref="scroll" class="recommend-content" :data="discList">
       <div>
         <!--轮播图组件-->
-        <banner v-if="recommends.length"  @load="loadImage" :banner-list="recommends"></banner>
+        <banner v-if="recommends.length"  @loadImage="loadImage" :banner-list="recommends"></banner>
         <!--歌单推荐组件-->
         <song-list :disc-list="discList"></song-list>
       </div>
@@ -14,6 +12,7 @@
         <loading></loading>
       </div>
     </scroll>
+    <!-- 二级路由容器-->
     <router-view></router-view>
   </div>
 
@@ -31,9 +30,8 @@
   export default {
     data () {
       return {
-        recommends: [],
-        discList: []
-
+        recommends: [], // 轮播图
+        discList: [] // 热们歌单列表
       }
     },
     created () {
@@ -41,12 +39,7 @@
       this._getDiscList()
     },
     methods: {
-      loadImage () {
-        if (!this.checkloaded) {
-          this.checkloaded = true
-          this.$refs.scroll.refresh()
-        }
-      },
+      // 二级路由实现跳转
       selectItem (item) {
         this.$router.push({
           path: `/recommend/${item.dissid}`

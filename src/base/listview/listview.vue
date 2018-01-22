@@ -76,18 +76,20 @@
     },
     methods: {
       selectItem(item) {
+        //派发select事件
         this.$emit('select', item)
       },
       onShortcutTouchStart(e) {
         let anchorIndex = getData(e.target, 'index')
         let firstTouch = e.touches[0] //获取第一个手指的位置
-        this.touch.y1 = firstTouch.pageY //
+        this.touch.y1 = firstTouch.pageY // 开发滑动的纵坐标
         this.touch.anchorIndex = anchorIndex //当前索引
+        // 控制左边区块的滑动到指定位置
         this._scrollTo(anchorIndex)
       },
       onShortcutTouchMove(e) {
         let firstTouch = e.touches[0] //获取第一个手指的位置
-        this.touch.y2 = firstTouch.pageY //
+        this.touch.y2 = firstTouch.pageY // 移动过程中的纵坐标
         let delta = (this.touch.y2 - this.touch.y1) / ANCHOR_HEIGHT | 0 //相差几个索引
 
         let anchorIndex = parseInt(this.touch.anchorIndex) + delta //计算当前应该滚动到的索引位置
@@ -124,8 +126,10 @@
           index = this.listHeight.length - 2
         }
         //通过 watch scrollY 来设置当前的index用来改变高亮的状态
-        this.scrollY = -this.listHeight[index]
 
+        //设置右边快速滚动到
+        this.scrollY = -this.listHeight[index]
+        // 设置左边区块快速滚动到
         this.$refs.listview.scrollToElement(this.$refs.listGroup[index], 0)
       }
     },
@@ -137,7 +141,6 @@
       },
       scrollY(newY) {
         const listHeight = this.listHeight
-        //console.log('footer',listHeight[listHeight.length-1])
         // 当滚动到顶部，newY>0
         if (newY > 0) {
           this.currentIndex = 0
@@ -150,7 +153,7 @@
           let height2 = listHeight[i + 1]
           if (-newY >= height1 && -newY < height2) {
             this.currentIndex = i
-            this.diff = height2 + newY
+            this.diff = height2 + newY // 向上滚动一直减少
             return
           }
         }
@@ -164,7 +167,6 @@
           return
         }
         this.fixedTop = fixedTop
-        //console.log(this.fixedTop)
         this.$refs.fixed.style.transform = `translate3d(0,${fixedTop}px,0)`
       }
     },

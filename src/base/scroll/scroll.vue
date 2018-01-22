@@ -1,5 +1,6 @@
 <template>
   <div ref="wrapper">
+    <!--插槽-->
     <slot></slot>
   </div>
 </template>
@@ -105,7 +106,7 @@
     computed: {},
     components: {},
     watch: {
-      discListData () {
+      data () {
         setTimeout(() => {
           this.refresh()
         }, this.refreshDelay)
