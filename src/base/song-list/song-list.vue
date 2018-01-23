@@ -29,7 +29,7 @@
     methods: {
       selectItem(item, index) {
         // 基础组件派发给业务组件
-        this.$emit('select', item, index)
+        this.$emit('childrenSelect', item, index)
       },
       getDesc(song) {
         return `${song.singer}·${song.album}`

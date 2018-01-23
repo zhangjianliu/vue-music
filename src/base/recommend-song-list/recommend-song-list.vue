@@ -2,7 +2,7 @@
   <div class="recommend-list">
     <h1 class="list-title">热门歌单推荐</h1>
     <ul>
-      <li @click="selectItem(item)" v-for="item in discList" class="item">
+      <li @click="select(item)" v-for="item in discList" class="item">
         <div class="icon">
           <img width="60" height="60"  v-lazy="item.imgurl" src="">
         </div>
@@ -24,14 +24,11 @@
         data: {}
       }
     },
-    mounted () {
-
-    },
-    computed: {
-
-    },
-    components: {
-
+    methods: {
+      select(item) {
+        // 基础组件派发给业务组件
+        this.$emit('childrenSelect', item)
+      }
     }
   }
 </script>

@@ -5,7 +5,7 @@
         <!--轮播图组件-->
         <banner v-if="recommends.length"  @loadImage="loadImage" :banner-list="recommends"></banner>
         <!--歌单推荐列表组件-->
-        <song-list :disc-list="discList"></song-list>
+        <recommend-song-list @childrenSelect="childSelectHandler" :disc-list="discList"></recommend-song-list>
       </div>
       <!--loading组件-->
       <div class="loading-container" v-show="!discList.length">
@@ -24,9 +24,9 @@
   import { ERR_OK } from 'api/config'
   import Loading from 'base/loading/loading'
   import Banner from 'components/banner/banner'
-  import songList from 'base/reco-song-list/song-list'
+  import RecommendSongList from 'base/recommend-song-list/recommend-song-list'
   import Scroll from 'base/scroll/scroll'
-
+  import {mapMutations} from 'vuex'
   export default {
     data () {
       return {
@@ -40,10 +40,11 @@
     },
     methods: {
       // 二级路由实现跳转
-      selectItem (item) {
+      childSelectHandler (item) {
         this.$router.push({
           path: `/recommend/${item.dissid}`
         })
+        // 设置vuex
         this.setDisc(item)
       },
       _getRecommend () {
@@ -68,10 +69,13 @@
           this.$refs.scroll.refresh()
         }
       },
+      ...mapMutations({
+        setDisc:'SET_DISC'
+      })
     },
     components: {
       Banner,
-      songList,
+      RecommendSongList,
       Scroll,
       Loading
     }
