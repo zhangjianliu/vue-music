@@ -1,6 +1,7 @@
 require('./check-versions')()
 
 let config = require('../config')
+console.log('server222222222222222222222')
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = JSON.parse(config.dev.env.NODE_ENV)
 }
@@ -23,9 +24,11 @@ let proxyTable = config.dev.proxyTable
 
 let app = express()
 
-let apiRoutes = express.Router()
+let apiRoutes  = express.Router()
 
-apiRoutes.get('/getDiscList', function (req, res) {
+route.get('/getDiscList', function (req, res) {
+  console.log('22222')
+  console.log(req.query)
   let url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
   console.log('https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcghttps://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg')
   axios.get(url, {
@@ -40,9 +43,8 @@ apiRoutes.get('/getDiscList', function (req, res) {
     console.log(e)
   })
 })
-apiRoutes.get('/lyric', function (req, res) {
+route.get('/lyric', function (req, res) {
   let url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg'
-
   axios.get(url, {
     headers: {
       referer: 'https://c.y.qq.com/',
@@ -64,7 +66,7 @@ apiRoutes.get('/lyric', function (req, res) {
   })
 })
 
-app.use('/api', apiRoutes)
+app.use('/api', apiRoutes )
 
 let compiler = webpack(webpackConfig)
 

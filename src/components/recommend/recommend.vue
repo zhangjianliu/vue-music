@@ -4,7 +4,7 @@
       <div>
         <!--轮播图组件-->
         <banner v-if="recommends.length"  @loadImage="loadImage" :banner-list="recommends"></banner>
-        <!--歌单推荐组件-->
+        <!--歌单推荐列表组件-->
         <song-list :disc-list="discList"></song-list>
       </div>
       <!--loading组件-->
@@ -20,7 +20,7 @@
 
 <script type="text/ecmascript-6">
 
-  import { getRecommend, getDiscList } from 'api/tuijian'
+  import { getRecommend, getDiscList } from 'api/recommendPage'
   import { ERR_OK } from 'api/config'
   import Loading from 'base/loading/loading'
   import Banner from 'components/banner/banner'
@@ -58,7 +58,7 @@
           if (res.code === ERR_OK) {
             setTimeout(()=>{
               this.discList = res.data.list
-            },1000)
+            },100)
           }
         })
       },

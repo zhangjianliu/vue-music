@@ -50,7 +50,7 @@
       _normalizeSongs(list) {
         let ret = []
         list.forEach((item) => {
-          let {musicData} = item  //对象的解构
+          let {musicData} = item
           if (musicData.songid && musicData.albummid) {
             ret.push(createSong(musicData))
           }

@@ -17,7 +17,11 @@
           <h1 class="title" v-html="currentSong.name"></h1>
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
-        <div class="middle">
+        <div class="middle"
+             @touchstart.prevent="middleTouchStart"
+             @touchmove.prevent="middleTouchMove"
+             @touchend="middleTouchEnd"
+        >
           <div class="middle-l" ref="middleL">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" :class="cdCls">
@@ -25,9 +29,10 @@
               </div>
             </div>
             <div class="playing-lyric-wrapper">
-              <div class="playing-lyric"></div>
+              <div class="playing-lyric">{{playingLyric}}</div>
             </div>
           </div>
+
           <scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
             <div class="lyric-wrapper">
               <div v-if="currentLyric">
@@ -41,7 +46,8 @@
         </div>
         <div class="bottom">
           <div class="dot-wrapper">
-
+            <span class="dot" :class="{'active':currentShow==='cd'}"></span>
+            <span class="dot" :class="{'active':currentShow==='lyric'}"></span>
           </div>
           <div class="progress-wrapper">
             <span class="time time-l">{{format(currentTime)}}</span>
@@ -57,7 +63,7 @@
             <div class="icon i-left" :class="disableCls">
               <i class="icon-prev" @click="pre"></i>
             </div>
-            <div class="icon i-center" :class="disableCls">
+            <div class="icon i-center">
               <i @click="togglePlaying" :class="playIcon" ></i>
             </div>
             <div class="icon i-right" :class="disableCls">
@@ -70,6 +76,7 @@
         </div>
       </div>
     </transition>
+    <!--小型迷你播放器-->
     <transition name="mini">
       <div class="mini-player" v-show="!fullScreen" @click="">
         <div class="icon" >
@@ -89,7 +96,7 @@
         </div>
       </div>
     </transition>
-    <audio ref="audio"  @error="error" @canplay="ready"  @timeupdate="updateTime" src="http://sc1.111ttt.cn/2017/1/11/11/304112002347.mp3"></audio>
+    <audio ref="audio" autoplay="autoplay"  @error="error" @canplay="ready"  @timeupdate="updateTime" src="http://sc1.111ttt.cn/2017/1/05/09/298092042172.mp3"></audio>
   </div>
 </template>
 
@@ -99,6 +106,7 @@
   import { prefixStyle } from 'common/js/dom' // 给transform 加webkit前缀
   import { playMode } from 'common/js/config'
   import Scroll from 'base/scroll/scroll'
+  import Lyric from 'lyric-parser' // 处理歌词的一个第三方插件
   import ProgressBar from 'base/progress-bar/progress-bar'
   import ProgressCircle from 'base/progress-circle/progress-circle'
   import { setRandomArr } from 'common/js/util'
@@ -107,13 +115,13 @@
   export default {
     data () {
       return {
-        songReady: false, //
-        currentTime: 0,
-        radius: 32,
-        currentLyric: null,
-        currentLineNum: 0,
-        currentShow: 'cd',
-        playingLyric: ''
+        songReady: false, // 歌曲准备好标志
+        currentTime: 0,   // 当前时间
+        radius: 32,      // 半径
+        currentLyric: null, // 当前歌词
+        currentLineNum: 0, // 当前歌词所在行
+        currentShow: 'cd', // 默认显示cd页面
+        playingLyric: ''   // 当前播放歌词
       }
     },
     computed: {
@@ -145,7 +153,7 @@
       ])
     },
     created () {
-      this.touch = {}
+      this.touch = {} // 移动事件载体
     },
     methods: {
       back () {
@@ -199,7 +207,13 @@
         this.$refs.cdWrapper.style[transform] = ''
       },
       togglePlaying () {
+        if(!this.playing){
+          return
+        }
         this.setPlayingState(!this.playing)
+          if( this.currentLyric){
+            this.currentLyric.togglePlay()
+          }
       },
       // 获取目标的位置(这里是以大圆为中心点小圆的位置)
       _getPosAndScale () {
@@ -267,9 +281,13 @@
         this.currentTime = e.target.currentTime
       },
       onProgressBarChange(percent) {
-        this.$refs.audio.currentTime = this.currentSong.duration * percent
+        const currentTime=this.currentSong.duration * percent
+        this.$refs.audio.currentTime = currentTime
         if (!this.playing) {
           this.togglePlaying()
+        }
+        if (this.currentLyric) {
+          this.currentLyric.seek(currentTime * 1000)
         }
       },
       //得到分和秒
@@ -308,6 +326,97 @@
         })
         this.setCurrentIndex(index)
       },
+      // 获取歌词
+      getLyric() {
+        this.currentSong.getLyric().then((lyric) => {
+          if(this.currentSong.lyric !== lyric) {
+            return
+          }
+
+          this.currentLyric = new Lyric(lyric, this.handleLyric)
+          if(this.playing) {
+            this.currentLyric.play()
+          }
+        }).catch(() => {
+          this.currentLyric = null
+          this.playingLyric = ''
+          this.currentLineNum = 0
+        })
+      },
+      handleLyric({lineNum, txt}) {
+        this.currentLineNum = lineNum
+        if (lineNum > 5) {
+          let lineEl = this.$refs.lyricLine[lineNum - 5]
+          this.$refs.lyricList.scrollToElement(lineEl, 1000)
+        } else {
+          this.$refs.lyricList.scrollTo(0, 0, 1000)
+        }
+        this.playingLyric = txt // 正在播放的歌词
+      },
+      middleTouchStart(e){
+        this.touch.initiated = true // 开启状态维护
+        // 用来判断是否是一次移动
+        this.touch.moved = false
+        const touch = e.touches[0]
+        this.touch.startX = touch.pageX
+        this.touch.startY = touch.pageY
+      },
+      middleTouchMove(e){
+        if (!this.touch.initiated) {
+          return
+        }
+        const touch = e.touches[0]
+        const deltaX = touch.pageX - this.touch.startX
+        const deltaY = touch.pageY - this.touch.startY
+        // 如果是向上滑动不翻页
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+          return
+        }
+        if (!this.touch.moved) {
+          this.touch.moved = true
+        }
+        const left = this.currentShow === 'cd' ? 0 : -window.innerWidth
+        const offsetWidth = Math.min(0, Math.max(-window.innerWidth, left + deltaX))
+        this.touch.percent = Math.abs(offsetWidth / window.innerWidth)
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px,0,0)`
+        this.$refs.lyricList.$el.style[transitionDuration] = 0
+        this.$refs.middleL.style.opacity = 1 - this.touch.percent
+        this.$refs.middleL.style[transitionDuration] = 0
+
+      },
+      middleTouchEnd(e){
+        if (!this.touch.moved) {
+          return
+        }
+        let offsetWidth
+        let opacity
+        if (this.currentShow === 'cd') {
+          if (this.touch.percent > 0.1) {
+            offsetWidth = -window.innerWidth
+            opacity = 0
+            this.currentShow = 'lyric'
+          } else {
+            offsetWidth = 0
+            opacity = 1
+          }
+        } else {
+          if (this.touch.percent < 0.9) {
+            offsetWidth = 0
+            this.currentShow = 'cd'
+            opacity = 1
+          } else {
+            offsetWidth = -window.innerWidth
+            opacity = 0
+          }
+        }
+        const time = 300
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${offsetWidth}px,0,0)`
+        this.$refs.lyricList.$el.style[transitionDuration] = `${time}ms`
+        this.$refs.middleL.style.opacity = opacity
+        this.$refs.middleL.style[transitionDuration] = `${time}ms`
+        this.touch.initiated = false
+
+      },
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',  // back 设置 FullScreen
         setPlayingState: 'SET_PLAYING_STATE',
@@ -324,10 +433,19 @@
         if(newSong.id===oldSong.id){
           return
         }
-        let _this=this
-        this.$nextTick(() => {
-          _this.$refs.audio.play()
-        })
+        // 切换歌词时清除
+        if(this.currentLyric){
+          this.currentLyric.stop()
+        }
+        clearTimeout(this.timer)
+        this.timer = setTimeout(() => {
+          this.$refs.audio.play()
+          this.getLyric()
+          // 把获取歌词的函数作为song类的一个方法,那么每个实例化的歌曲对象都有这个获取自身歌词的方法了---厉害！！！！！
+         //  _this.currentSong.getLyric().then((res)=>{
+          //  console.log(res)
+         //  })
+        }, 1000)
       },
       playing (newPlaying) {
         const audio = this.$refs.audio
