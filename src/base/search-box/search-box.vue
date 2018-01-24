@@ -8,7 +8,6 @@
 
 <script type="text/ecmascript-6">
   import {debounce} from 'common/js/util'
-
   export default {
     props: {
       placeholder: {
@@ -18,10 +17,11 @@
     },
     data() {
       return {
-        query: ''
+        query: '' // 双向数据绑定
       }
     },
     methods: {
+      // 组件自身交互功能
       clear() {
         this.query = ''
       },
@@ -32,6 +32,7 @@
         this.$refs.query.blur()
       }
     },
+    // 为什么在 created 里面写this.$watch()
     created() {
       this.$watch('query', debounce((newQuery) => {
         this.$emit('query', newQuery)

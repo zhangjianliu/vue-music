@@ -43,15 +43,21 @@
     methods: {
       handlePlaylist(playlist) {
         const bottom = playlist.length > 0 ? '60px' : ''
-
         this.$refs.rank.style.bottom = bottom
         this.$refs.toplist.refresh()
       },
       selectItem(item) {
-        this.$router.push({
-          path: `/rank/${item.id}`
-        })
-        this.setTopList(item)
+        console.log('item',item)
+        if(item.id){
+          this.setTopList(item)
+          this.$router.push({
+            path: `/rank/${item.id}`
+          })
+        }else {
+          this.$router.push({
+            path: '/rank'
+          })
+        }
       },
       _getTopList() {
         getTopList().then((res) => {

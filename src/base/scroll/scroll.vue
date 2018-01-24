@@ -66,13 +66,13 @@
         if (this.pullup) {
           this.scroll.on('scrollEnd', () => {
             if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
-              this.$emit('scrollToEnd')
+              this.$emit('scrollToEnd') // 派发scrollToEnd事件
             }
           })
         }
         if (this.beforeScroll) {
           this.scroll.on('beforeScrollStart', () => {
-            this.$emit('beforeScroll')
+            this.$emit('beforeScroll') // 派发一个beforeScrll事件
           })
         }
       },

@@ -20,9 +20,9 @@
       <div class="song-list-wrapper">
         <song-list :songs="songs" :rank="rank" @select="selectItem"></song-list>
       </div>
-      <!--<div v-show="!songs.length&&songs.length" class="loading-container">-->
-        <!--<loading></loading>-->
-      <!--</div>-->
+      <div v-show="!songs.length" class="loading-container">
+        <loading :title="loadTitle"></loading>
+      </div>
     </scroll>
   </div>
 </template>
@@ -60,7 +60,8 @@
     },
     data() {
       return {
-        scrollY: 0  // 监听一个 scrollY
+        scrollY: 0, // 监听一个 scrollY
+        loadTitle:'纳尼！你丫的加载失败是吧？今晚别想美事了'
       }
     },
     computed: {
