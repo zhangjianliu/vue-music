@@ -5,7 +5,7 @@
         <!--轮播图组件-->
         <banner v-if="recommends.length"  @loadImage="loadImage" :banner-list="recommends"></banner>
         <!--歌单推荐列表组件-->
-        <recommend-song-list @childrenSelect="childSelectHandler" :disc-list="discList"></recommend-song-list>
+        <recommend-song-list  @childrenSelect="childSelectHandler" :disc-list="discList"></recommend-song-list>
       </div>
       <!--loading组件-->
       <div class="loading-container" v-show="!discList.length">
@@ -15,19 +15,18 @@
     <!-- 二级路由容器-->
     <router-view></router-view>
   </div>
-
 </template>
-
 <script type="text/ecmascript-6">
-
   import { getRecommend, getDiscList } from 'api/recommendPage'
   import { ERR_OK } from 'api/config'
   import Loading from 'base/loading/loading'
   import Banner from 'components/banner/banner'
   import RecommendSongList from 'base/recommend-song-list/recommend-song-list'
   import Scroll from 'base/scroll/scroll'
+  import {playlistMixin} from 'common/js/mixin'
   import {mapMutations} from 'vuex'
   export default {
+    mixins: [playlistMixin],
     data () {
       return {
         recommends: [], // 轮播图
@@ -39,6 +38,12 @@
       this._getDiscList()
     },
     methods: {
+      handlePlaylist(playlist) {
+        const bottom = playlist.length > 0 ? '60px' : ''
+
+        this.$refs.recommend.style.bottom = bottom
+        this.$refs.scroll.refresh()
+      },
       // 二级路由实现跳转
       childSelectHandler (item) {
         this.$router.push({

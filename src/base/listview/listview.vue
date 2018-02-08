@@ -153,6 +153,7 @@
           let height2 = listHeight[i + 1]
           if (-newY >= height1 && -newY < height2) {
             this.currentIndex = i
+            console.log(this.currentIndex)
             this.diff = height2 + newY // 向上滚动一直减少
             return
           }

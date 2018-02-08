@@ -12,13 +12,13 @@
   import {getSingerList} from 'api/singer'
   import {ERR_OK} from 'api/config'
   import Singer from 'common/js/singer'
-
+  import {playlistMixin} from 'common/js/mixin'
   import {mapMutations} from 'vuex'  //vuex 提供的语法糖  提供mutation方法的映射
-
   const HOT_SINGER_LEN = 10
   const HOT_NAME = '热门'
 
   export default {
+    mixins: [playlistMixin],
     data() {
       return {
         singers: []
