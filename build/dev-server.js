@@ -1,7 +1,6 @@
 require('./check-versions')()
 
 let config = require('../config')
-console.log('server222222222222222222222')
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = JSON.parse(config.dev.env.NODE_ENV)
 }
@@ -22,51 +21,6 @@ let autoOpenBrowser = !!config.dev.autoOpenBrowser
 // https://github.com/chimurai/http-proxy-middleware
 let proxyTable = config.dev.proxyTable
 
-let app = express()
-
-let apiRoutes  = express.Router()
-
-route.get('/getDiscList', function (req, res) {
-  console.log('22222')
-  console.log(req.query)
-  let url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
-  console.log('https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcghttps://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg')
-  axios.get(url, {
-    headers: {
-      referer: 'https://c.y.qq.com/',
-      host: 'c.y.qq.com'
-    },
-    params: req.query
-  }).then((response) => {
-    res.json(response.data)
-  }).catch((e) => {
-    console.log(e)
-  })
-})
-route.get('/lyric', function (req, res) {
-  let url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg'
-  axios.get(url, {
-    headers: {
-      referer: 'https://c.y.qq.com/',
-      host: 'c.y.qq.com'
-    },
-    params: req.query
-  }).then((response) => {
-    let ret = response.data
-    if (typeof ret === 'string') {
-      let reg = /^\w+\(({[^()]+})\)$/
-      let matches = ret.match(reg)
-      if (matches) {
-        ret = JSON.parse(matches[1])
-      }
-    }
-    res.json(ret)
-  }).catch((e) => {
-    console.log(e)
-  })
-})
-
-app.use('/api', apiRoutes )
 
 let compiler = webpack(webpackConfig)
 
@@ -109,7 +63,7 @@ app.use(hotMiddleware)
 let staticPath = path.posix.join(config.dev.assetsPublicPath, config.dev.assetsSubDirectory)
 app.use(staticPath, express.static('./static'))
 
-let uri = 'http://localhost:' + port
+let uri = 'http://127.0.0.1:' + port
 
 let _resolve
 let readyPromise = new Promise(resolve => {
