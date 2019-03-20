@@ -1,45 +1,45 @@
 <template>
   <div class="music-list">
-    <div class="back" @click="back">
-      <i class="icon-back"></i>
+    <div class="back" @click='back'>
+      <i class='icon-back'></i>
     </div>
-    <!--v-html 转义字符-->
-    <h1 class="title" v-html="title"></h1>
-    <div class="bg-image" :style="bgStyle" ref="bgImage">
+    <h1 class="title" v-html='title'></h1>
+    <div class="bg-image" :style='bgStyle' ref='bgImage'>
       <div class="play-wrapper">
-        <div ref="playBtn" v-show="songs.length>0" class="play" @click="random">
+        <div ref="playBtn" v-show='songs.length>0' class='play' @click='random'>
           <i class="icon-play"></i>
-          <span class="text">随机播放全部</span>
+          <span class='text'>随机播放全部</span>
         </div>
       </div>
-      <div class="filter" ref="filter"></div>
+      <div class="filter" ref='filter'></div>
     </div>
     <div class="bg-layer" ref="layer"></div>
-    <scroll :data="songs" @scroll="scroll"
-            :listen-scroll="listenScroll" :probe-type="probeType" class="list" ref="list">
+    <scroll :data='songs' :listen-scroll='listenScroll'
+            :probe-type='probeType' @scroll='scroll' ref='songList' class='list'>
       <div class="song-list-wrapper">
-        <song-list :songs="songs" :rank="rank" @select="selectItem"></song-list>
-      </div>
-      <div v-show="!songs.length" class="loading-container">
-        <loading :title="loadTitle"></loading>
+        <song-list @select='selectSong' :songs='songs' :rank='rank'>
+        </song-list>
       </div>
     </scroll>
   </div>
 </template>
 
-<script type="text/ecmascript-6">
-  import Scroll from 'base/scroll/scroll'
-  import Loading from 'base/loading/loading'
-  import SongList from 'base/song-list/song-list'
-  import {prefixStyle} from 'common/js/dom'
-
+<script>
+  // 引入scroll和song-list组件
+  import Scroll from '../../base/scroll.vue'
+  import SongList from '../../base/song-list/song-list.vue'
+  import {prefixStyle} from '../../common/js/dom'
+  // 在组件中 分发action  使用mapActions辅助函数将组建中的methods映射为store.distapch调用
   import {mapActions} from 'vuex'
+  // 引入Vue的mixin模式
+  import {playlistMixin} from '../../common/js/mixin'
 
-  const RESERVED_HEIGHT = 40
+  const leftHeigth = 40;
   const transform = prefixStyle('transform')
   const backdrop = prefixStyle('backdrop-filter')
 
-  export default {
+  export default{
+    mixins: [playlistMixin],
     props: {
       bgImage: {
         type: String,
@@ -47,7 +47,9 @@
       },
       songs: {
         type: Array,
-        default: []
+        default: function () {
+          return [];
+        }
       },
       title: {
         type: String,
@@ -58,72 +60,85 @@
         default: false
       }
     },
-    data() {
+    components: {
+      Scroll,
+      SongList
+    },
+    data(){
       return {
-        scrollY: 0, // 监听一个 scrollY
-        loadTitle:'纳尼！你丫的加载失败是吧？今晚别想美事了'
+        scrollY: 0
       }
+    },
+    created(){
+      this.probeType = 3;
+      this.listenScroll = true;
+    },
+    mounted(){
+      this.imageHeight = this.$refs.bgImage.clientHeight;
+      this.minTransalteY = -this.imageHeight + leftHeigth;
+      this.$refs.songList.$el.style.top = `${this.$refs.bgImage.clientHeight}px`;
     },
     computed: {
       bgStyle() {
         return `background-image:url(${this.bgImage})`
       }
     },
-    // dom 未渲染
-    created() {
-      this.probeType = 3
-      this.listenScroll = true  //监听滚动
-    },
-    // dom 渲染完毕
-    mounted() {
-      this.imageHeight = this.$refs.bgImage.clientHeight
-      this.minTransalteY = -this.imageHeight + RESERVED_HEIGHT
-      this.$refs.list.$el.style.top = `${this.imageHeight}px`
-    },
     methods: {
-      scroll(pos) {
-        this.scrollY = pos.y
+      handlePlaylist(playlist){
+        // 固定一下底部数组
+        const bottomHeight = playlist.length > 0 ? '60px' : '';
+        this.$refs.songList.$el.style.bottom = bottomHeight;
+        // console.log(this.$refs.songList);
+        this.$refs.songList.refresh();
       },
-      back() {
-        this.$router.back() //竟然有这个方法
+      // 声明scroll方法 当子组件触发scroll时 传递给父组件 进行实时的变化
+      scroll(pos){
+        this.scrollY = pos.y;
       },
-      selectItem(item, index) {
-        // 播放歌曲列表 播放哪个歌曲
+      back(){
+        this.$router.back()
+      },
+      random(){
+        this.randomPlay({
+          list: this.songs
+        })
+      },
+      selectSong(item, index){
         this.selectPlay({
           list: this.songs,
           index
         })
       },
-      random() {
-        this.randomPlay({
-          list: this.songs
-        })
-      },
       ...mapActions([
-        'selectPlay', // 设置当前播放列表
-        'randomPlay'  // 随机播放
-      ])
+        // 映射  this.selectplay() 为 this.$store.dispatch('increment')
+        'selectPlay',
+        'randomPlay'
+      ]),
     },
     watch: {
-      scrollY: function (newVal) {
-        let translateY = Math.max(this.minTransalteY, newVal)
-        let scale = 1  //图片跟随放大缩小
-        let zIndex = 0
-        let blur = 0  // 图片高斯模糊
-        const percent = Math.abs(newVal / this.imageHeight)
+      scrollY(newVal){
+        // 在这里监听 scroll的变化 并改变头部图片的值
+        /*
+         我们要达到两个效果 第一个效果：歌单列表向上滑动的时候 遮罩层随着向上（有一个向上的最大距离） 往下滑的时候（图片要随着你下滑的距离 有一个放大的效果）
+         */
+        let translateY = Math.max(this.minTransalteY, newVal);
+        let scale = 1;
+        let zIndex = 0;
+        let blur = 0;
+        const percent = Math.abs(newVal / this.imageHeight);
         if (newVal > 0) {
-          scale = 1 + percent
-          zIndex = 10
+          scale = 1 + percent;
+          zIndex = 10;
         } else {
           blur = Math.min(20, percent * 20)
         }
-
-        this.$refs.layer.style[transform] = `translate3d(0,${translateY}px,0)`
+        // 当列表向上滑动的时候 有一个高斯模糊的效果
+        this.$refs.layer.style[transform] = `translate3d(0,${translateY}px,0)`;
         this.$refs.filter.style[backdrop] = `blur(${blur}px)`
         if (newVal < this.minTransalteY) {
-          zIndex = 10
-          this.$refs.bgImage.style.paddingTop = 0
-          this.$refs.bgImage.style.height = `${RESERVED_HEIGHT}px`
+          zIndex = 10;
+          this.$refs.bgImage.style.height = `${leftHeigth}px`;
+          this.$refs.bgImage.style.paddingTop = 0;
           this.$refs.playBtn.style.display = 'none'
         } else {
           this.$refs.bgImage.style.paddingTop = '70%'
@@ -133,11 +148,6 @@
         this.$refs.bgImage.style[transform] = `scale(${scale})`
         this.$refs.bgImage.style.zIndex = zIndex
       }
-    },
-    components: {
-      Scroll,
-      Loading,
-      SongList
     }
   }
 </script>
@@ -223,6 +233,7 @@
       bottom: 0
       width: 100%
       background: $color-background
+      /*overflow:hidden*/
       .song-list-wrapper
         padding: 20px 30px
       .loading-container

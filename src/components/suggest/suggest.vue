@@ -1,140 +1,99 @@
 <template>
-  <!--搜索结果组件-->
-  <scroll ref="suggest"
-          class="suggest"
-          :data="result"
-          :pullup="pullup"
+  <scroll class="suggest"
+          ref='scroll'
+          :data='result'
+          :pullUpRefresh='pullUpRefresh'
+          @UPEnd='searchMore'
           :beforeScroll="beforeScroll"
-          @scrollToEnd="searchMore"
           @beforeScroll="listScroll"
   >
     <ul class="suggest-list">
-      <li @click="selectItem(item)" class="suggest-item" v-for="item in result">
+      <li class="suggest-item" @click='selectItem(item)' v-for='item in result'>
         <div class="icon">
-          <i :class="getIconCls(item)"></i>
+          <i :class='getIconCls(item)'></i>
         </div>
         <div class="name">
-          <p class="text" v-html="getDisplayName(item)"></p>
+          <p class='text' v-html='getDisPlayName(item)'></p>
         </div>
       </li>
-      <!--上拉刷新loading效果-->
-      <loading v-show="hasMore" title=""></loading>
+      <loading v-show='hasMore' title=''></loading>
     </ul>
-    <div v-show="!hasMore && !result.length" class="no-result-wrapper">
+    <div class="no-result-wrapper" v-show="!hasMore&&!result.length">
       <no-result title="抱歉，暂无搜索结果"></no-result>
     </div>
   </scroll>
 </template>
 
-<script type="text/ecmascript-6">
-  import Scroll from 'base/scroll/scroll' // 滚动组件 引入上拉加载更多
-  import Loading from 'base/loading/loading' // loading组件
-  import NoResult from 'base/no-result/no-result' // 没有搜索结果组件
-  import {search} from 'api/search' // search
-  import {ERR_OK} from 'api/config'
-  import {createSong} from 'common/js/song' // 歌曲类
-  import {mapMutations, mapActions} from 'vuex' // vuex
-  import Singer from 'common/js/singer' //歌手类 实例化一个歌手对象
+<script>
+  import {search} from '../../api/search'
+  import {createSong} from '../../common/js/song'
+  //  引入scroll组件  将这个搜索结果变为滑动的
+  import Scroll from '../../base/scroll.vue'
+  // 引入懒加载组件
+  import loading from '../../base/loading.vue'
+  // 引入vuex的辅助函数
+  import {mapMutations, mapActions} from 'vuex'
+  import Singer from '../../common/js/singer'
+  // 当我们搜索不到结果的时候 需要给用户一个提示
+  import NoResult from '../../base/ no-result/no-result.vue'
+
   const TYPE_SINGER = 'singer'
-  const perpage = 20
+  const perpage = 20;
 
   export default {
     props: {
+      searchMsg: {
+        type: String,
+        default: ''
+      },
       showSinger: {
         type: Boolean,
         default: true
-      },
-      query: {
-        type: String,
-        default: ''
       }
+    },
+    components: {
+      Scroll,
+      loading,
+      NoResult
     },
     data() {
       return {
-        page: 1, // 请求参数
-        pullup: true, // 上拉刷新开关
-        beforeScroll: true, //
-        hasMore: true, // 当前是不是最后一页
-        result: [] // 搜索结果数组
+        result: [],
+        pullUpRefresh: true,
+        page: 1,
+        hasMore: true,
+        beforeScroll: true,
       }
     },
+    created() {
+
+    },
+    computed: {},
     methods: {
-      // 为scroll组件的refresh方法做一个代理
-      refresh() {
-        this.$refs.suggest.refresh()
-      },
-      // 请求服务端数据
       search() {
-        this.page = 1  // 请求当前页码
-        this.hasMore = true // 是否有下一页
-        this.$refs.suggest.scrollTo(0, 0) // 滚动到顶部
-        search(this.query, this.page, this.showSinger, perpage).then((res) => {
-          if (res.code === ERR_OK) {
-            this.result = this._genResult(res.data)
-            this._checkMore(res.data)
+        //this.page = 1;
+        this.hasMore = true;
+        this.$refs.scroll.scrollTo(0, 0);
+        search(this.searchMsg, this.page, this.showSinger, perpage).then((res) => {
+          if (res.code === 0) {
+            this.result = this.genResult(res.data);
+            //  在这里 我们需要检测一下 是否还有更多的项
+            this.checkMore(res.data);
           }
         })
       },
-      // 上拉刷新加载更所事件
-      searchMore() {
-        if (!this.hasMore) {
-          return
-        }
-        this.page++
-        search(this.query, this.page, this.showSinger, perpage).then((res) => {
-          if (res.code === ERR_OK) {
-            this.result = this.result.concat(this._geResult(res.data))
-            this._checkMore(res.data)
-          }
-        })
-      },
-      // 派发scroll事件主要为了解决移动端滚动时输入框的隐藏
-      listScroll() {
-        this.$emit('listScroll')
-      },
-      // 跳转
-      selectItem(item) {
-        // 点击歌手跳转到歌手详情页
-        if (item.type === TYPE_SINGER) {
-          const singer = new Singer({
-            id: item.singermid,
-            name: item.singername
-          })
-          this.$router.push({
-            path: `/search/${singer.id}`
-          })
-          // 通信
-          this.setSinger(singer)
-        } else {
-          this.insertSong(item) // 点击添加到当前歌曲到播放列表
-        }
-        this.$emit('select', item)
-      },
-      // 处理名字显示
-      getDisplayName(item) {
-        if (item.type === TYPE_SINGER) {
-          return item.singername // 显示歌手名字
-        } else {
-          return `${item.name}-${item.singer}`
-        }
-      },
-      // 因为请求回来的列表有可能是歌手
-      getIconCls(item) {
-        if (item.type === TYPE_SINGER) {
-          return 'icon-mine'  // 歌手图标
-        } else {
-          return 'icon-music'
-        }
-      },
-      _genResult(data) {
+      genResult(data) {
         let ret = []
         if (data.zhida && data.zhida.singerid) {
-          // ...obj 拓展运算符 vuex 用的多
+//          console.log({...data.zhida});
+//          console.log({...data.zhida, ...{type: TYPE_SINGER}});
           ret.push({...data.zhida, ...{type: TYPE_SINGER}})
         }
         if (data.song) {
           ret = ret.concat(this._normalizeSongs(data.song.list))
         }
+//        console.log('final');
+//        console.log(ret);
         return ret
       },
       _normalizeSongs(list) {
@@ -144,32 +103,79 @@
             ret.push(createSong(musicData))
           }
         })
+        //console.log(ret);
         return ret
       },
-      // 检测是否还有更多数据
-      _checkMore(data) {
-        const song = data.song
-        if (!song.list.length || (song.curnum + song.curpage * perpage) > song.totalnum) {
-          this.hasMore = false
+      getIconCls(item) {
+        if (item.type === TYPE_SINGER) {
+          return 'icon-mine'
+        } else {
+          return 'icon-music'
         }
       },
+      getDisPlayName(item) {
+        if (item.type === TYPE_SINGER) {
+          return item.singername
+        } else {
+          return `${item.name}-${item.singer}`
+        }
+      },
+      checkMore(data) {
+        const song = data.song;
+        if (!song.list.length || song.curnum + song.curpage * perpage > song.totalnum) {
+          this.hasMore = false;
+        }
+      },
+      searchMore() {
+        if (!this.hasMore) {
+          return
+        }
+        this.page++;
+        search(this.searchMsg, this.page, this.showSinger, perpage).then((res) => {
+          if (res.code === 0) {
+            this.result = this.result.concat(this.genResult(res.data));
+            //  在这里 我们需要检测一下 是否还有更多的项
+            this.checkMore(res.data);
+          }
+        })
+      },
+      selectItem(item) {
+        /*
+        判断为歌手的 选项 跳转路由 设置mumation 触发事件
+         */
+        if (item.type === TYPE_SINGER) {
+          // 构造一个singer实例
+          const singer = new Singer({
+            id: item.singermid,
+            name: item.singername
+          })
+
+          this.$router.push({
+            path: `/search/${singer.id}`
+          })
+          this.setSinger(singer);
+        } else {
+          this.insertSong(item)
+        }
+        this.$emit('selected',item)
+      },
       ...mapMutations({
-        setSinger: 'SET_SINGER' // 组件间通信
+        setSinger: 'SET_SINGER'
       }),
       ...mapActions([
         'insertSong'
-      ])
-    },
-    watch: {
-      // 检测watch的变化 去请求服务端数据
-      query(newQuery) {
-        this.search(newQuery)
+      ]),
+      listScroll() {
+        this.$emit('listScroll')
+      },
+      refresh(){
+          this.$refs.scroll.refresh();
       }
     },
-    components: {
-      Scroll,
-      Loading,
-      NoResult
+    watch: {
+      searchMsg(newVal) {
+        this.search(newVal)
+      }
     }
   }
 </script>

@@ -1,8 +1,8 @@
 <template>
-  <div class="rank" ref="rank">
-    <scroll :data="topList" class="toplist" ref="toplist">
+  <div class="rank" ref='rank'>
+    <scroll :data='topList' class='toplist'   ref='toplist'>
       <ul>
-        <li @click="selectItem(item)" class="item" v-for="item in topList">
+        <li  class="item" @click="selectItem(item)" v-for="item in topList">
           <div class="icon">
             <img width="100" height="100" v-lazy="item.picUrl"/>
           </div>
@@ -22,64 +22,58 @@
   </div>
 </template>
 
-<script type="text/ecmascript-6">
-  import Scroll from 'base/scroll/scroll'
-  import Loading from 'base/loading/loading'
-  import {getTopList} from 'api/rank'
-  import {ERR_OK} from 'api/config'
-  import {playlistMixin} from 'common/js/mixin'
+<script>
+  import {getTopList} from '../../api/rank'
+  import {playlistMixin} from '../../common/js/mixin'
+
+  // 引入懒加载动画
+  import loading from '../../base/loading.vue'
+  import scroll from '../../base/scroll.vue'
   import {mapMutations} from 'vuex'
 
   export default {
     mixins: [playlistMixin],
-    created() {
-      this._getTopList()
+    components: {
+      scroll,
+      loading
     },
-    data() {
+    props: {},
+    data () {
       return {
         topList: []
       }
     },
+    created () {
+      this._getTopList()
+    },
+    computed: {
+
+    },
     methods: {
-      handlePlaylist(playlist) {
+      handlePlaylist (playlist) {
         const bottom = playlist.length > 0 ? '60px' : ''
+
         this.$refs.rank.style.bottom = bottom
         this.$refs.toplist.refresh()
       },
-      selectItem(item) {
-        console.log('item',item)
-        if(item.id){
-          this.setTopList(item)
-          this.$router.push({
-            path: `/rank/${item.id}`
-          })
-        }else {
-          this.$router.push({
-            path: '/rank'
-          })
-        }
-      },
-      _getTopList() {
+      _getTopList () {
         getTopList().then((res) => {
-          if (res.code === ERR_OK) {
+          if (res.code == 0) {
+            // console.log(res);
             this.topList = res.data.topList
           }
         })
       },
+      selectItem (item) {
+        // console.log('majunchang');
+        this.$router.push({
+          path: `/rank/${item.id}`
+        })
+        this.setTopList(item)
+      },
       ...mapMutations({
-        setTopList: 'SET_TOP_LIST'
+        setTopList: 'SET_TOPLIST'
       })
-    },
-    watch: {
-      topList() {
-        setTimeout(() => {
-          this.$Lazyload.lazyLoadHandler()
-        }, 20)
-      }
-    },
-    components: {
-      Scroll,
-      Loading
     }
   }
 </script>

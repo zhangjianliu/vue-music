@@ -1,12 +1,10 @@
 <template>
-  <!--搜索结果为空的提示-->
   <div class="no-result">
     <div class="no-result-icon"></div>
     <p class="no-result-text">{{title}}</p>
   </div>
 </template>
-
-<script type="text/ecmascript-6">
+<script>
   export default {
     props: {
       title: {
@@ -18,6 +16,7 @@
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
+
   @import "~common/stylus/variable"
   @import "~common/stylus/mixin"
 

@@ -1,12 +1,12 @@
 <template>
   <div class="song-list">
     <ul>
-      <li @click="selectItem(song, index)" class="item" v-for="(song, index) in songs">
-        <div class="rank" v-show="rank">
-          <span :class="getRankCls(index)" v-text="getRankText(index)"></span>
+      <li class='item' @click='selectItem(song,index)' v-for="(song,index) in songs">
+        <div class="rank" v-show='rank'>
+          <span :class='getRankClass(index)' v-text='getRankText(index)'></span>
         </div>
         <div class="content">
-           <h2 class="name">{{song.name}}</h2>
+          <h2 class="name">{{song.name}}</h2>
           <p class="desc">{{getDesc(song)}}</p>
         </div>
       </li>
@@ -14,34 +14,43 @@
   </div>
 </template>
 
-<script type="text/ecmascript-6">
-  export default {
+<script>
+  export default{
     props: {
       songs: {
         type: Array,
-        default: []
+        default: function () {
+          return []
+        }
       },
       rank: {
         type: Boolean,
         default: false
       }
     },
+    components: {},
+    data(){
+      return {}
+    },
+    created(){
+
+    },
+    computed: {},
     methods: {
-      selectItem(item, index) {
-        // 基础组件派发给业务组件
-        this.$emit('songSelect', item, index)
-      },
-      getDesc(song) {
+      getDesc(song){
         return `${song.singer}·${song.album}`
       },
-      getRankCls(index) {
+      selectItem(item, index){
+        this.$emit('select', item, index);
+      },
+      getRankClass(index){
         if (index <= 2) {
           return `icon icon${index}`
         } else {
           return 'text'
         }
       },
-      getRankText(index) {
+      getRankText(index){
         if (index > 2) {
           return index + 1
         }

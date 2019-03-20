@@ -1,62 +1,72 @@
 <template>
-  <!--歌手页面的开发-->
-  <div class="singer" ref="singer">
-    <list-view @select="selectSinger" :data="singers" ref="list"></list-view>
-    <!--二级路由-->
+  <div class="singer" ref='singer'>
+    <!--子组件使用$emit 去触发父组件的方法  在父组件中要使用v-on去绑定一下 这个事件-->
+    <list-view :data="singers" @select ='selectSinger' ref="list"></list-view>
     <router-view></router-view>
   </div>
 </template>
 
 <script>
-  import ListView from 'base/listview/listview'
   import {getSingerList} from 'api/singer'
-  import {ERR_OK} from 'api/config'
   import Singer from 'common/js/singer'
+  import {resCode} from 'api/config'
+  import listView from 'base/listview'
+  // 从vuex中 引入这个mutation
+  import {mapMutations} from 'vuex'
   import {playlistMixin} from 'common/js/mixin'
-  import {mapMutations} from 'vuex'  //vuex 提供的语法糖  提供mutation方法的映射
-  const HOT_SINGER_LEN = 10
-  const HOT_NAME = '热门'
 
-  export default {
+  const hotLength = 10
+const hotName = '热门'
+export default{
     mixins: [playlistMixin],
-    data() {
+    components: {
+      listView
+    },
+    props: {},
+    data () {
       return {
         singers: []
       }
     },
-    created() {
+    created () {
       this._getSingerList()
-    },
+  },
+    computed: {},
     methods: {
-      handlePlaylist(playlist) {
+      handlePlaylist (playlist) {
         const bottom = playlist.length > 0 ? '60px' : ''
         this.$refs.singer.style.bottom = bottom
+        // console.log(this.$refs.singer);
         this.$refs.list.refresh()
       },
-      selectSinger(singer) {
+      // mapMutations  在methods中声明
+      ...mapMutations({
+        setSinger: 'SET_SINGER'
+      }),
+      selectSinger (item) {
         this.$router.push({
-          path: `/singer/${singer.id}`
+          path: `/singer/${item.id}`
         })
-        // 使用vuex来保存歌手数据
-        this.setSinger(singer)
+        // 将传入的参数对象 放入vuex中  item 也就是单个的歌手对象
+        //        console.log(item);
+        this.setSinger(item)
       },
-      _getSingerList() {
+      _getSingerList () {
         getSingerList().then((res) => {
-          if (res.code === ERR_OK) {
-            console.log(res.data.list)
+          if (res.code === resCode) {
             this.singers = this._normalizeSinger(res.data.list)
           }
         })
       },
-      _normalizeSinger(list) {
+      _normalizeSinger (list) {
         let map = {
           hot: {
-            title: HOT_NAME,
+            title: hotName,
             items: []
           }
         }
         list.forEach((item, index) => {
-          if (index < HOT_SINGER_LEN) {
+          if (index < hotLength) {
             map.hot.items.push(new Singer({
               name: item.Fsinger_name,
               id: item.Fsinger_mid
@@ -74,31 +84,24 @@
             id: item.Fsinger_mid
           }))
         })
-        // 为了得到有序列表，我们需要处理 map
-        let ret = []
-        let hot = []
-        for (let key in map) {
-          let val = map[key]
-          if (val.title.match(/[a-zA-Z]/)) {
-            ret.push(val)
-          } else if (val.title === HOT_NAME) {
-            hot.push(val)
+        //  我们得到了对象 但是对象的key值排布 是无序的 我们要对他进行有序的排列
+        let CharArr = []
+        let hotArr = []
+        for (var k in map) {
+          if (map[k].title.match(/[a-zA-Z]/)) {
+            CharArr.push(map[k])
+          } else if (map[k].title === hotName) {
+            hotArr.push(map[k])
           }
         }
-        ret.sort((a, b) => {
+        // 此时得到了 热门数组和字符数组
+        CharArr.sort((a, b) => {
           return a.title.charCodeAt(0) - b.title.charCodeAt(0)
         })
-        return hot.concat(ret)
-      },
-      ...mapMutations({
-        setSinger: 'SET_SINGER'
-      })
-    },
-    components: {
-      ListView
+        return hotArr.concat(CharArr)
+      }
     }
   }
-
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">

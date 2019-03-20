@@ -1,94 +1,117 @@
 <template>
   <div class="recommend" ref="recommend">
-    <scroll ref="scroll" class="recommend-content" :data="discList">
+    <scroll class="recommend-content" ref='scroll' :data='discList'>
       <div>
-        <!--轮播图组件-->
-        <banner v-if="recommends.length"  @loadImage="loadImage" :banner-list="recommends"></banner>
-        <!--歌单推荐列表组件-->
-        <recommend-song-list  @childrenSelect="childSelectHandler" :disc-list="discList"></recommend-song-list>
+        <div class="slider-wrapper" v-if="recommends.length">
+          <slider>
+            <div v-for="item in recommends">
+              <a :href="item.linkUrl">
+                <img class="needsclick" @load='loadImg' :src="item.picUrl">
+              </a>
+            </div>
+          </slider>
+        </div>
+        <div class="recommend-list">
+          <h1 class='list-title'>热门歌单推荐</h1>
+          <ul>
+            <li v-for="item in discList" class='item' :key="item.dissid">
+              <div class="icon">
+                <img v-lazy="item.imgurl" width='60' height='60' alt="">
+              </div>
+              <div class="text">
+                <h2 class='name' v-html='item.creator.name'></h2>
+                <p class="desc" v-html='item.dissname'></p>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
-      <!--loading组件-->
-      <div class="loading-container" v-show="!discList.length">
+      <div class="loading-container" v-show='!discList.length'>
         <loading></loading>
       </div>
     </scroll>
-    <!-- 二级路由容器-->
     <router-view></router-view>
   </div>
 </template>
-<script type="text/ecmascript-6">
-  import { getRecommend, getDiscList } from 'api/recommendPage'
-  import { ERR_OK } from 'api/config'
-  import Loading from 'base/loading/loading'
-  import Banner from 'components/banner/banner'
-  import RecommendSongList from 'base/recommend-song-list/recommend-song-list'
-  import Scroll from 'base/scroll/scroll'
+
+<script>
+  import {getRecommend, getDiscList} from '../../api/recommend'
+  import {resCode} from '../../api/config'
+  import Slider from '../../base/slider.vue'
+  // 引入滚动组件
+  import scroll from '../../base/scroll.vue'
+  // 引入loading动画组件
+  import loading from '../../base/loading.vue'
   import {playlistMixin} from 'common/js/mixin'
+
   import {mapMutations} from 'vuex'
-  export default {
+
+  export default{
     mixins: [playlistMixin],
+    components: {
+      Slider,
+      scroll,
+      loading
+    },
+    props: {},
     data () {
       return {
-        recommends: [], // 轮播图
-        discList: [] // 热们歌单列表
+        recommends: [],
+        discList: []
       }
     },
     created () {
       this._getRecommend()
-      this._getDiscList()
+      setTimeout(() => {
+        this._getDiscList()
+      }, 400)
     },
+    computed: {},
     methods: {
-      handlePlaylist(playlist) {
-        const bottom = playlist.length > 0 ? '60px' : ''
-
-        this.$refs.recommend.style.bottom = bottom
-        this.$refs.scroll.refresh()
-      },
-      // 二级路由实现跳转
-      childSelectHandler (item) {
-        this.$router.push({
-          path: `/recommend/${item.dissid}`
-        })
-        // 设置vuex
-        this.setDisc(item)
-      },
       _getRecommend () {
         getRecommend().then((res) => {
-          if (res.code === ERR_OK) {
+          if (res.code === resCode) {
             this.recommends = res.data.slider
           }
         })
       },
       _getDiscList () {
         getDiscList().then((res) => {
-          if (res.code === ERR_OK) {
-            setTimeout(()=>{
-              this.discList = res.data.list
-            },100)
+          // console.log(res);
+          if (res.code === resCode) {
+            // console.log(res);
+            this.discList = res.data.list
           }
         })
       },
-      loadImage() {
-        if (!this.checkloaded) {
+      loadImg () {
+        if (!this.checkLoad) {
           this.checkloaded = true
           this.$refs.scroll.refresh()
         }
       },
+      handlePlaylist (playlist) {
+        const bottom = playlist.length > 0 ? '60px' : ''
+
+        this.$refs.recommend.style.bottom = bottom
+        this.$refs.scroll.refresh()
+      },
       ...mapMutations({
-        setDisc:'SET_DISC'
-      })
-    },
-    components: {
-      Banner,
-      RecommendSongList,
-      Scroll,
-      Loading
+        setDisc: 'SET_DISC'
+      }),
+      selectItem (item) {
+        // 点击item之后 页面进行跳转 并且将你点击的这个 存储进入vuex里面
+      //        console.log(item);
+        this.$router.push({
+          path: `/recommend/${item.dissid}`
+        })
+        this.setDisc(item)
+      }
     }
   }
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
-
   @import "~common/stylus/variable"
 
   .recommend

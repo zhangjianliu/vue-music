@@ -1,5 +1,6 @@
-
-// 项目通用的常量配置
+/**
+ * Created by majunchang on 2017/7/23.
+ */
 export const commonParams = {
   g_tk: 1928093487,
   inCharset: 'utf-8',
@@ -8,9 +9,8 @@ export const commonParams = {
   format: 'jsonp'
 }
 
-// jsopn 回掉函数名字
 export const options = {
   param: 'jsonpCallback'
 }
 
-export const ERR_OK = 0
+export const resCode = 0
